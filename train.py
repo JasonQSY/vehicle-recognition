@@ -78,8 +78,9 @@ def train(train_func, data_func, config, post_epoch=None):
             if config['train']['epoch'] > config['train']['epoch_num']:
                 break
 
-        for phase in ['train', 'valid']:
-            num_step = config['train']['{}_iters'.format(phase)]
+        for phase in ['train']:
+            #num_step = config['train']['{}_iters'.format(phase)]
+            num_step = config['train']['num_step']
             generator = data_func(phase)
             print('start', phase, config['opt'].exp)
 

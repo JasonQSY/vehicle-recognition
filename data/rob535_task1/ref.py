@@ -3,7 +3,8 @@ from pathlib import Path
 import pandas as pd
 import os
 
-data_dir = os.path.expanduser('~/datasets/rob535/')
+#data_dir = os.path.expanduser('~/datasets/rob535/')
+data_dir = '/tmp/deploy/'
 print(data_dir)
 #data_dir = os.path.join(Path(os.path.abspath(__file__)).parent, 'dataset')
 
@@ -25,7 +26,6 @@ def load_image(idx, is_train=True):
     if is_train:
         parent_dir = os.path.join(data_dir, 'trainval')
         p = os.path.join(parent_dir, path)
-        print('qss')
     else:
         parent_dir = os.path.join(data_dir, 'test')
         p = os.path.join(parent_dir, path)
@@ -44,12 +44,13 @@ def load_gt(idx):
     return label
 
 def setup_val_split(opt = None):
-    train = range(0, 19000)
+    #train = range(0, 19000)
     #train = range(10)
+    train = range(1500, 7573)
     return train, train
 
 def get_test_set():
-    return range(2000)
+    return range(1500)
 
 
 if __name__ == "__main__":

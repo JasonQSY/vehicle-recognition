@@ -10,19 +10,21 @@ from torch.nn import DataParallel
 from utils.misc import make_input, make_output, importNet
 
 __config__ = {
-    'data_provider': 'data.eecs442_challenge.dp',
-    'network': 'models.snnet.SNNet',
+    'data_provider': 'data.rob535_task1.dp',
+    'network': 'models.jccnet.JccNet',
     'inference': {
-        'nstack': 8,
-        'inp_dim': 256,
-        'oup_dim': 3,
-        'num_parts': 3,
-        'increase': 128,
-        'keys': ['imgs']
+        'keys': ['imgs'],
     },
+    #    'nstack': 8,
+    #    'inp_dim': 256,
+    #    'oup_dim': 3,
+    #    'num_parts': 3,
+    #    'increase': 128,
+    #    'keys': ['imgs']
+    #},
 
     'train': {
-        'batchsize': 20,
+        'batchsize': 64,
         'input_res': 128,
         'output_res': 128,
         'train_iters': 900,
@@ -30,12 +32,16 @@ __config__ = {
         'learning_rate': 2e-4,
         'num_loss': 1,
         'loss': [
-            ['mae_loss', 1],
+            #['mae_loss', 1],
+            ['dummy_loss', 1],
         ],
         'max_num_people': 30,
         'num_workers': 2,
         'use_data_loader': True,
     },
+	'valid': {
+		'num_step': 0,
+	},
 }
 
 class Trainer(nn.Module):
@@ -107,8 +113,9 @@ def make_network(configs):
             for i in losses:
                 loss = loss + torch.mean(losses[i])
 
-                my_loss = make_output( losses[i] )
-                my_loss = my_loss.mean(axis = 0)
+                my_loss = make_output(losses[i])
+                #import pdb; pdb.set_trace()
+                #my_loss = my_loss.mean(axis = 0)
 
                 if my_loss.size == 1:
                     toprint += ' {}: {}'.format(i, format(my_loss.mean(), '.8f'))

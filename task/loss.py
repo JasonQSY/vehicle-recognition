@@ -22,6 +22,16 @@ class MAELoss(torch.nn.Module):
         return (l*2 + eucli_l*np.pi)/(np.pi+2)
 #         return (l/np.pi+eucli_l/2)
 
+class DummyLoss(torch.nn.Module):
+    def __init__(self):
+        super(DummyLoss, self).__init__()
+        self.loss = torch.nn.CrossEntropyLoss()
+
+    def forward(self, pred, gt):
+        #l = (pred == gt)
+        l = self.loss(pred, gt)
+        return l.mean()
+
 
 def test_mae_loss():
     pred = torch.FloatTensor([[[[0.5, 0.2, 0.3], [0.1, -0.2, -0.7]]]])

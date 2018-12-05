@@ -97,8 +97,7 @@ class Bottleneck(nn.Module):
 		return out
 
 
-class cvnet(nn.Module):  
-
+class resnet(nn.Module):
 	def __init__(self, block, layers, num_classes=3):  
 		self.inplanes = 64  
 		super(cvnet, self).__init__()  
@@ -155,19 +154,19 @@ class cvnet(nn.Module):
 
 		return x  
 
-		
-def load_pretrained_model():
-	#load model
-	resnet50 = models.resnet50(pretrained=True)  
-	cvnet = cvnet(Bottleneck, [3, 4, 6, 3])  
-	#read parameters  
-	# pretrained_parameters= resnet50.state_dict() 
-	# print(pretrained_parameters) 
-	curr_parameters = cvnet.state_dict()  
-	# delete key 
-	pretrained_parameters =  {k: v for k, v in pretrained_parameters.items() if k in curr_parameters}  
-	# update key 
-	curr_parameters.update(pretrained_parameters)  
-	# load state_dict  
-	cvnet.load_state_dict(curr_parameters)   
-	# print(cvnet)  
+    def load_pretrained_model(self):
+	    #load model
+	    resnet50 = models.resnet50(pretrained=True)  
+	    cvnet = cvnet(Bottleneck, [3, 4, 6, 3])  
+	    #read parameters  
+	    # pretrained_parameters= resnet50.state_dict() 
+	    # print(pretrained_parameters) 
+	    curr_parameters = cvnet.state_dict()  
+	    # delete key 
+	    pretrained_parameters =  {k: v for k, v in pretrained_parameters.items() if k in curr_parameters}  
+	    # update key 
+	    curr_parameters.update(pretrained_parameters)  
+	    # load state_dict  
+	    cvnet.load_state_dict(curr_parameters)   
+	    # print(cvnet)  
+

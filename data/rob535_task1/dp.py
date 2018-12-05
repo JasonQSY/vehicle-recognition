@@ -4,7 +4,7 @@ import torch
 import numpy as np
 import torch.utils.data
 from scipy.misc import imresize, imsave
-
+import cv2
 
 
 class Dataset(torch.utils.data.Dataset):
@@ -25,11 +25,29 @@ class Dataset(torch.utils.data.Dataset):
         ds = self.ds
         # load image
         img = ds.load_image(idx)
+        height, width = img.shape[0:2]
+        if height >= width:
+            width = int(224 / height * width)
+            height = 224
+        else:
+            height = int(224 / width * height)
+            width = 224
+        img = cv2.resize(img, dsize = (width, height))
+        img = (img / 255 - 0.5) * 2
+        img_old = img
+        img = np.zeros((224, 224, 3))
+        img[round(112 - height/2):round(112+height//2), round(112-width/2):round(112+width/2)] = img_old
+        #img = (img / 255 - 0.5) * 2
+        img = np.transpose(img, (2, 0, 1))
 
         # ground true
         gt = ds.load_gt(idx)
 
-        return img.astype(np.float32), mask.astype(np.float32), gt.astype(np.float32)
+        #return img.astype(np.float32), gt
+        return {
+            'imgs': img.astype(np.float32),
+            'gts': gt,
+        }
 
 
 def init(config):
@@ -46,21 +64,31 @@ def init(config):
 
     loaders = {}
     for key in dataset:
-        loaders[key] = torch.utils.data.DataLoader(dataset[key], batch_size=batchsize, shuffle=False, num_workers=config['train']['num_workers'], pin_memory=False)
+        if key == 'valid':
+            continue
+        print(len(dataset[key]))
+        num_step = len(dataset[key]) // batchsize
+        print(num_step)
+        config[key]['num_step'] = num_step
+        loaders[key] = torch.utils.data.DataLoader(dataset[key],
+                                                   batch_size=batchsize,
+                                                   shuffle=False,
+                                                   num_workers=config['train']['num_workers'],
+                                                   pin_memory=False)
 
     def gen(phase):
         batchsize = config['train']['batchsize']
-        batchnum = config['train']['{}_iters'.format(phase)]
+        #batchnum = config['train']['{}_iters'.format(phase)]
         loader = loaders[phase].__iter__()
         for i in range(batchnum):
-            imgs, masks, gts = next(loader)
+            imgs, gts = next(loader)
             yield {
                 'imgs': imgs,
-                'masks': masks,
+                #'masks': masks,
                 'gts': gts,
             }
 
-    return lambda key: gen(key)
+    return lambda phase: loaders[phase].__iter__()
 
 if __name__ == "__main__":
     cf = {
