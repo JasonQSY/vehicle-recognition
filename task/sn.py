@@ -24,19 +24,19 @@ __config__ = {
     #},
 
     'train': {
-        'batchsize': 64,
+        'batchsize': 32,
         'input_res': 128,
         'output_res': 128,
         'train_iters': 900,
         'valid_iters': 0,
-        'learning_rate': 2e-4,
+        'learning_rate': 1e-2,
         'num_loss': 1,
         'loss': [
             #['mae_loss', 1],
             ['dummy_loss', 1],
         ],
         'max_num_people': 30,
-        'num_workers': 2,
+        'num_workers': 0,
         'use_data_loader': True,
     },
 	'valid': {

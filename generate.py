@@ -12,19 +12,20 @@ import train as net
 
 
 def preprocess(img):
+    size = 1024
     height, width = img.shape[0:2]
     if height >= width:
-        width = int(224 / height * width)
-        height = 224
+        width = int(size / height * width)
+        height = size
     else:
-        height = int(224 / width * height)
-        width = 224
+        height = int(size / width * height)
+        width = size
     img = cv2.resize(img, dsize=(width, height))
     #imsave('./save/origin_{}.png'.format(idx), img)
     img = (img / 255 - 0.5) * 2
     img_old = img
-    img = np.zeros((224, 224, 3))
-    img[round(112-height/2):round(112+height//2), round(112-width/2):round(112+width//2)] = img_old
+    img = np.zeros((size, size, 3))
+    img[round(size//2-height/2):round(size//2+height//2), round(size//2-width/2):round(size//2+width//2)] = img_old
     img = np.transpose(img, (2, 0, 1))
     img = img.astype(np.float32)
     img = img[None, :, :, :]
@@ -68,7 +69,7 @@ def evaluate(test_set):
     ds.init()
 
     for idx in tqdm(test_set):
-        img = ds.load_image(idx, is_train)
+        img = ds.load_image(idx, True)
         img = preprocess(img)
         output = func(-1, config, phase='inference', imgs=img)
         pred = output['preds'][0]
@@ -85,6 +86,8 @@ def evaluate(test_set):
 
 
 if __name__=='__main__':
-    #test_set = range(0,1000)
-    #generate(test_set, True)
-    generate()
+    test_set = range(0,1000)
+    valid_set = range(3000, 4000)
+    #evaluate(test_set)
+    evaluate(valid_set)
+    #generate()

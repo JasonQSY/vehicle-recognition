@@ -23,20 +23,21 @@ class Dataset(torch.utils.data.Dataset):
 
     def loadImage(self, idx):
         ds = self.ds
+        size = 1024
         # load image
         img = ds.load_image(idx)
         height, width = img.shape[0:2]
         if height >= width:
-            width = int(224 / height * width)
-            height = 224
+            width = int(size / height * width)
+            height = size
         else:
-            height = int(224 / width * height)
-            width = 224
+            height = int(size / width * height)
+            width = size
         img = cv2.resize(img, dsize = (width, height))
         img = (img / 255 - 0.5) * 2
         img_old = img
-        img = np.zeros((224, 224, 3))
-        img[round(112 - height/2):round(112+height//2), round(112-width/2):round(112+width/2)] = img_old
+        img = np.zeros((size, size, 3))
+        img[round(size//2 - height/2):round(size//2+height//2), round(size//2-width/2):round(size//2+width//2)] = img_old
         #img = (img / 255 - 0.5) * 2
         img = np.transpose(img, (2, 0, 1))
 
