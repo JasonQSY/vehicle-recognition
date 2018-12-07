@@ -1,4 +1,5 @@
 import torch
+from torch import nn
 import time
 import numpy as np
 from utils.misc import make_input
@@ -31,6 +32,16 @@ class DummyLoss(torch.nn.Module):
         #l = (pred == gt)
         l = self.loss(pred, gt)
         return l.mean()
+
+
+class RMSLoss(torch.nn.Module):
+    def __init__(self):
+        super(RMSLoss, self).__init__()
+        self.loss = nn.MSELoss()
+
+    def forward(self, pred, gt):
+        l = self.loss(pred, gt)
+        return l
 
 
 def test_mae_loss():
