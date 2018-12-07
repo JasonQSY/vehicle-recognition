@@ -22,13 +22,13 @@ __config__ = {
         'output_res': 128,
         'train_iters': 900,
         'valid_iters': 0,
-        'learning_rate': 1e-2,
+        'learning_rate': 2e-3,
         'num_loss': 1,
         'loss': [
             ['mse_loss', 1],
         ],
         'max_num_people': 30,
-        'num_workers': 0,
+        'num_workers': 2,
         'use_data_loader': True,
     },
 	'valid': {

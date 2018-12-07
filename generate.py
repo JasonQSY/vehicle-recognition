@@ -7,12 +7,12 @@ from tqdm import tqdm
 from scipy.misc import imread, imsave, imresize
 from glob import glob
 
-import data.rob535_task1.ref as ds
+import data.rob535_task2.ref as ds
 import train as net
 
 
 def preprocess(img):
-    size = 1024
+    size = 224
     height, width = img.shape[0:2]
     if height >= width:
         width = int(size / height * width)
@@ -62,6 +62,33 @@ def generate():
 
     f.close()
 
+def generate_task2():
+    """
+    Generate task 2 result
+    """
+    func, config = net.init()
+    files = glob(ds.data_dir + 'test/*/*_image.jpg')
+    f = open('task2.csv', 'w')
+    f.write('guid/image/axis,value\n')
+
+    for filename in files:
+        img = imread(filename)
+        img = preprocess(img)
+        output = func(-1, config, phase='inference', imgs=img)
+        pred = output['preds'][0][0]
+
+        dirs = filename.split('/')
+        fdir = dirs[-2]
+        fname = dirs[-1][0:4]
+        fname = fdir + '/' + fname
+        axis = ['x','y','z']
+        for i in range(3):
+            line = fname + '/' + axis[i] + ',' + str(pred[i])
+            print(line)
+            f.write(line + '\n')
+
+    f.close()
+
 
 def evaluate(test_set):
     func, config = net.init()
@@ -85,9 +112,35 @@ def evaluate(test_set):
     print("accuracy: {}".format(accu))
 
 
+def evaluate_task2(test_set):
+    func, config = net.init()
+    ds.init()
+    error_sum = 0.
+
+    for idx in tqdm(test_set):
+        #tqdm.write(str(idx))
+        img = ds.load_image(idx, True)
+        img = preprocess(img)
+        output = func(-1, config, phase='inference', imgs=img)
+        pred = output['preds'][0][0]
+        #tqdm.write("pred: " + str(pred))
+        gt = ds.load_gt(idx)
+        #tqdm.write("gt: " + str(gt))
+        error = np.sqrt(((pred - gt)**2).sum())
+        #tqdm.write(str(error))
+        error_sum += error
+
+    print("[summary]")
+    rms = error_sum / len(test_set)
+    print("RMSE: {}".format(rms))
+
+
 if __name__=='__main__':
-    test_set = range(0,1000)
+    test_set = range(0,1500)
     valid_set = range(3000, 4000)
     #evaluate(test_set)
-    evaluate(valid_set)
+    #evaluate(valid_set)
     #generate()
+    generate_task2()
+    #evaluate_task2(test_set)
+    #evaluate_task2(valid_set)

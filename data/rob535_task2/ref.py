@@ -4,8 +4,8 @@ import pandas as pd
 import os
 import numpy as np
 
-data_dir = os.path.expanduser('~/datasets/rob535/')
-#data_dir = '/tmp/deploy/'
+#data_dir = os.path.expanduser('~/datasets/rob535/')
+data_dir = '/tmp/deploy/'
 print(data_dir)
 #data_dir = os.path.join(Path(os.path.abspath(__file__)).parent, 'dataset')
 
