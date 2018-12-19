@@ -32,11 +32,7 @@ def load_image(idx, is_train=True):
     return imread(p,mode='RGB')
 
 def load_mask(idx, is_train=True):
-    if is_train:
-        p = os.path.join(data_dir, 'train', 'mask', str(idx) + '.png')
-    else:
-        p = os.path.join(data_dir, 'test', 'mask', str(idx) + '.png')
-    return imread(p,mode='L')
+	raise ValueError
 
 def load_gt(idx):
     image_row = df.loc[[idx]]
@@ -46,7 +42,8 @@ def load_gt(idx):
 def setup_val_split(opt = None):
     #train = range(0, 19000)
     #train = range(10)
-    train = range(1500, 7573)
+    #train = range(1500, 7573)
+    train = range(7573)
     return train, train
 
 def get_test_set():

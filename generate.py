@@ -6,13 +6,18 @@ import numpy as np
 from tqdm import tqdm
 from scipy.misc import imread, imsave, imresize
 from glob import glob
+from torchvision import transforms
 
-import data.rob535_task2.ref as ds
+import data.rob535_task1.ref as ds
+from data.rob535_task1.dp import Dataset
+#import data.rob535_task2.ref as ds
 import train as net
 
 
 def preprocess(img):
-    size = 224
+    img = Dataset.preprocess(img)
+    return img[None, :, :, :]
+    size = 512
     height, width = img.shape[0:2]
     if height >= width:
         width = int(size / height * width)
@@ -25,7 +30,9 @@ def preprocess(img):
     img = (img / 255 - 0.5) * 2
     img_old = img
     img = np.zeros((size, size, 3))
-    img[round(size//2-height/2):round(size//2+height//2), round(size//2-width/2):round(size//2+width//2)] = img_old
+    x_left = round(size//2 - height/2)
+    y_left = round(size//2 - width/2)
+    img[x_left:(x_left+height), y_left:(y_left+width)] = img_old
     img = np.transpose(img, (2, 0, 1))
     img = img.astype(np.float32)
     img = img[None, :, :, :]
@@ -44,7 +51,7 @@ def generate():
     f = open('result.csv', 'w')
     f.write('guid/image,label\n')
 
-    for filename in files:
+    for filename in tqdm(files):
         img = imread(filename)
         img = preprocess(img)
         output = func(-1, config, phase='inference', imgs=img)
@@ -58,7 +65,7 @@ def generate():
         #results[fname] = pred
         line = fname + ',' + str(pred)
         f.write(line + '\n')
-        print(line)
+        #print(line)
 
     f.close()
 
@@ -98,6 +105,7 @@ def evaluate(test_set):
     for idx in tqdm(test_set):
         img = ds.load_image(idx, True)
         img = preprocess(img)
+        #import pdb; pdb.set_trace()
         output = func(-1, config, phase='inference', imgs=img)
         pred = output['preds'][0]
         pred = np.argmax(pred) # predicted label
@@ -140,7 +148,7 @@ if __name__=='__main__':
     valid_set = range(3000, 4000)
     #evaluate(test_set)
     #evaluate(valid_set)
-    #generate()
-    generate_task2()
+    generate()
+    #generate_task2()
     #evaluate_task2(test_set)
     #evaluate_task2(valid_set)

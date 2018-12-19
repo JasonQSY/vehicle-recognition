@@ -5,9 +5,20 @@ import numpy as np
 import torch.utils.data
 from scipy.misc import imresize, imsave
 import cv2
+import random
+from torchvision import transforms
 
 
 class Dataset(torch.utils.data.Dataset):
+    transform = transforms.Compose([
+        transforms.ToPILImage('RGB'),
+        transforms.ColorJitter(0.4, 0.4, 0.4, 0),
+        transforms.RandomCrop(512, pad_if_needed=True),
+        transforms.ToTensor(),
+    ])
+    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                     std=[0.229, 0.224, 0.225])
+
     def __init__(self, config, ds, index):
         self.input_res = config['train']['input_res']
         self.output_res = config['train']['output_res']
@@ -15,17 +26,24 @@ class Dataset(torch.utils.data.Dataset):
         self.ds = ds
         self.index = index
 
+        #self.transform = transforms.Compose([
+        #    transforms.ToPILImage('RGB'),
+        #    transforms.ColorJitter(0.4, 0.4, 0.4, 0),
+        #    transforms.RandomCrop(512, pad_if_needed=True),
+        #    transforms.ToTensor(),
+        #])
+        #self.normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+        #                                      std=[0.229, 0.224, 0.225])
+
     def __len__(self):
         return len(self.index)
 
     def __getitem__(self, idx):
         return self.loadImage(self.index[idx % len(self.index)])
 
-    def loadImage(self, idx):
-        ds = self.ds
-        size = 1024
-        # load image
-        img = ds.load_image(idx)
+    @staticmethod
+    def preprocess(img):
+        size = 640
         height, width = img.shape[0:2]
         if height >= width:
             width = int(size / height * width)
@@ -34,17 +52,49 @@ class Dataset(torch.utils.data.Dataset):
             height = int(size / width * height)
             width = size
         img = cv2.resize(img, dsize = (width, height))
-        img = (img / 255 - 0.5) * 2
-        img_old = img
-        img = np.zeros((size, size, 3))
-        img[round(size//2 - height/2):round(size//2+height//2), round(size//2-width/2):round(size//2+width//2)] = img_old
-        #img = (img / 255 - 0.5) * 2
-        img = np.transpose(img, (2, 0, 1))
+
+        # random crop and color jitter
+        img = Dataset.transform(img)
+
+        # normalize
+        img = Dataset.normalize(img)
+        return img
+
+    def loadImage(self, idx):
+        ds = self.ds
+        size = 640
+        # load image
+        img = ds.load_image(idx)
+
+        # flip
+        if random.random() > 0.5:
+            img = cv2.flip(img, 1)
+
+        # resize
+        height, width = img.shape[0:2]
+        if height >= width:
+            width = int(size / height * width)
+            height = size
+        else:
+            height = int(size / width * height)
+            width = size
+        img = cv2.resize(img, dsize = (width, height))
+
+        # random crop and color jitter
+        img = self.transform(img)
+
+        # normalize
+        img = self.normalize(img)
+        #img = img.numpy()
 
         # ground true
         gt = ds.load_gt(idx)
 
-        #return img.astype(np.float32), gt
+        return {
+            'imgs': img,
+            'gts': gt,
+        }
+
         return {
             'imgs': img.astype(np.float32),
             'gts': gt,
@@ -76,18 +126,6 @@ def init(config):
                                                    shuffle=False,
                                                    num_workers=config['train']['num_workers'],
                                                    pin_memory=False)
-
-    def gen(phase):
-        batchsize = config['train']['batchsize']
-        #batchnum = config['train']['{}_iters'.format(phase)]
-        loader = loaders[phase].__iter__()
-        for i in range(batchnum):
-            imgs, gts = next(loader)
-            yield {
-                'imgs': imgs,
-                #'masks': masks,
-                'gts': gts,
-            }
 
     return lambda phase: loaders[phase].__iter__()
 
